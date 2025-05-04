@@ -1,2 +1,3 @@
 venv/
 .gitignore
+front-end\pages\__pycache__
