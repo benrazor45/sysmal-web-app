@@ -1,4 +1,7 @@
 venv/
 .gitignore
-front-end\pages\__pycache__
+front-end/pages/__pycache__
 .env
+check_env.py
+back-end/app/uploads
+back-end/app/__pycache__
