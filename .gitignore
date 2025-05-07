@@ -1,4 +1,5 @@
 venv/
+seq_csv
 .gitignore
 front-end/pages/__pycache__
 .env

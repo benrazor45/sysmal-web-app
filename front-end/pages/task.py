@@ -1,5 +1,42 @@
 import streamlit as st
+from dotenv import load_dotenv
+import os
+import requests
+
+load_dotenv(dotenv_path="C:/Users/USER/sysmal-web-app/.env")
+BACKEND_URL = os.getenv("BACKEND_URL")
 
 def task_page():
     st.header("Task Status")
     st.write("Cek status analisis dari CAPEv2.")
+
+    if st.button("🔄 Refresh Task List"):
+        st.rerun()
+    
+    try:
+        response = requests.get(f"{BACKEND_URL}/task-list")
+        response.raise_for_status()
+        data = response.json()
+    except Exception as e:
+        st.error(f"Gagal mengambil data task: {e}")
+        return
+    
+    tasks = data.get("tasks", [])
+    print(tasks)
+    if not tasks:
+        st.info("Belum ada task.")
+        return
+    
+    rows = [
+        {
+            "ID": task["id"],
+            "Kategori": task["category"],
+            "File": task["target"],
+            "Status": task["status"]
+        }
+        for task in tasks
+    ]
+
+    st.table(rows)
+
+
