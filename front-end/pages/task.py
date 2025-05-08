@@ -8,7 +8,7 @@ BACKEND_URL = os.getenv("BACKEND_URL")
 
 def task_page():
     st.header("Task Status")
-    st.write("Cek status analisis dari CAPEv2.")
+    st.write("Check analysis status from CAPEv2.")
 
     if st.button("🔄 Refresh Task List"):
         st.rerun()
@@ -18,13 +18,13 @@ def task_page():
         response.raise_for_status()
         data = response.json()
     except Exception as e:
-        st.error(f"Gagal mengambil data task: {e}")
+        st.error(f"Failed getting task data: {e}")
         return
     
     tasks = data.get("tasks", [])
     print(tasks)
     if not tasks:
-        st.info("Belum ada task.")
+        st.info("There is no task")
         return
     
     rows = [

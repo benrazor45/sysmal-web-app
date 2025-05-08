@@ -5,8 +5,8 @@ def extract_sequence_from_dict(report_json: dict) -> str:
 
     resolved_apis = report_json.get('behavior', {}).get('summary', {}).get('resolved_apis', [])
     
-    if not isinstance(resolved_apis, list):
-        return ''
+    if not resolved_apis or not isinstance(resolved_apis, list):
+        raise ValueError("Resolved apis is null or not valid.")
 
     cleaned = [clean_api(api) for api in resolved_apis]
 

@@ -5,17 +5,17 @@ def home_page():
     st.markdown ("""
 <div style='text-align: justify; font-size: 16px; padding: 20px;'>
 
-**SYSMAL (System Malware Analyzer)** adalah web aplikasi yang memungkinkan pengguna mengunggah file executable (.exe) untuk dianalisis dan diprediksi apakah mengandung malware atau tidak.
+**SYSMAL (System Malware Analyzer)** is a web application that allows users to upload executable files (.exe) to be analyzed and predicted whether they contain malware or not.
 
-Proses analisis dilakukan melalui integrasi framework **CAPEv2** untuk melakukan dynamic analysis dan **model deep learning LSTM** untuk prediksi malware berdasarkan data hasil ekstraksi.
+The analysis process is carried out through framework integration **CAPEv2** to perform dynamic analysis and **model deep learning LSTM** for malware prediction based on extracted data.
 
-Repository model project ini dapat ditemukan di https://github.com/benrazor45/sysmal.git
+This project's model repository can be found at https://github.com/benrazor45/sysmal.git
 
-### 🔧 Fitur Utama:
-- Upload file `.exe` secara langsung melalui antarmuka web
-- Proses analisis menggunakan framework CAPEv2
-- Prediksi menggunakan model LSTM yang telah dilatih
-- Tampilan status analisis dan hasil prediksi secara real-time
+### 🔧 Key Features:
+- Upload `.exe` files directly via the web interface
+- Analysis process using CAPEv2 framework
+- Prediction using a trained LSTM model
+- View analysis status and prediction results in real-time
 
 </div>
 """, unsafe_allow_html=True)

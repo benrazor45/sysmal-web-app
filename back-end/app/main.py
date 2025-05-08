@@ -6,7 +6,7 @@ from tensorflow.keras.models import load_model
 import shutil
 from cape_api import submit_file, polling_status_task, get_file_reports, get_task_list
 from models import extract_sequence_from_dict
-from utils import save_sequence_to_csv
+from utils import save_sequence_to_csv, tokenization
 from dotenv import load_dotenv
 
 
@@ -24,9 +24,11 @@ app.add_middleware(
 )
 LIMIT_TASK = 5
 UPLOAD_FOLDER = "./uploads"
-TIMEOUT = 120
+TIMEOUT = 600
 INTERVAL = 5
-CSV_PATH = "back-end/app/seq_csv"
+RETRY_LIMIT = 3
+DELAY = 5
+CSV_PATH = "seq_csv"
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
 @app.post("/file-upload")
@@ -74,16 +76,37 @@ def predict_files(task_id):
     
     try :
 
-        polling_status_task(task_id, token=token_cape, interval=INTERVAL, timeout=TIMEOUT)
+        polling_status_task(task_id, token=token_cape, interval=INTERVAL, timeout=TIMEOUT, retry=RETRY_LIMIT)
 
-        report = get_file_reports(task_id, token=token_cape)
+        report = get_file_reports(task_id, token=token_cape, retry=RETRY_LIMIT, delay=DELAY)
+        print(report)
 
         sequence = extract_sequence_from_dict(report)
+        print(sequence)
 
-        save_sequence_to_csv(sequence, output_csv_path=CSV_PATH, task_id=task_id)
-    
+        if not sequence.strip():
+            raise HTTPException(status_code=422, detail="Sequence null : File don't have API activities.")
+
+        succes_save_to_csv = save_sequence_to_csv(sequence, output_csv_path=CSV_PATH, task_id=task_id)
+        if not succes_save_to_csv:
+            raise HTTPException(status_code=500, detail="Failed to save sequence to CSV")
+
+        padded_sequence = tokenization(task_id, csv_folder=CSV_PATH)
+
+        model = load_model('C:/Users/USER/sysmal-web-app/model/bi_lstm_batch_64.h5')
+        prediction = model.predict(padded_sequence)
+
+        label = "malware" if prediction[0][0] >= 0.5 else "benign"
+        confidence = float(prediction[0][0])
+
+        return {
+            "task_id": task_id,
+            "label": label,
+            "confidence": confidence
+        }
     except Exception as e:
         print(f"Failed Predict Malware")
+        raise HTTPException(status_code=500, detail=f"Prediction failed: {str(e)}")
 
 
 
