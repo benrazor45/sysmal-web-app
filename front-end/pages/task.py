@@ -3,7 +3,7 @@ from dotenv import load_dotenv
 import os
 import requests
 
-load_dotenv(dotenv_path="C:/Users/USER/sysmal-web-app/.env")
+load_dotenv(dotenv_path="/Users/jezzen145/sysmal-web-app/.env", override=True)
 BACKEND_URL = os.getenv("BACKEND_URL")
 
 def task_page():

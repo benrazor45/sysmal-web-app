@@ -4,7 +4,7 @@ import time
 from dotenv import load_dotenv
 import os
 
-load_dotenv(dotenv_path='C:/Users/USER/sysmal-web-app/.env')
+load_dotenv(dotenv_path='/Users/jezzen145/sysmal-web-app/.env', override=True)
 BACKEND_URL = os.getenv("BACKEND_URL")
 
 def upload_page():
@@ -75,19 +75,39 @@ def upload_page():
         
         progress_bar.progress(100, text="Analyzing and Prediction completed ✅")
         result = prediction_response.json()
+
+        try :
+            file_view_response = requests.get(f"{BACKEND_URL}/file-view/{task_id}")
+            file_view_data = file_view_response.json().get("result_view", [{}])[0]
+            target = file_view_data.get("target", "N/A")
+            added_on = file_view_data.get("added_on", "N/A")
+            file_type = file_view_data.get("file_type", "N/A")
+        except Exception as e:
+            target = added_on = file_type = "N/A"
+            st.error(f"Failed to retrieve file view: {e}")
+            return
+        
         label = result["label"]
         confidence = result["confidence"]
+        top_ngrams = result.get("top_ngrams", [])
 
         st.toast("Prediction completed! 🎉", icon="✅")
         card_color = "#FF4B4B" if label == "malware" else "#4CAF50"
         emoji = "🛑" if label == "malware" else "✅"
 
         st.markdown(f"""
-        <div style="position:fixed; bottom:20px; right:20px; width:300px; background-color:{card_color}; 
-                    padding:20px; border-radius:10px; box-shadow:2px 2px 10px rgba(0,0,0,0.3); color:white;">
-            <h4 style="margin-top:0;">{emoji} Deteksi File</h4>
-            <p><strong>Label:</strong> {label.upper()}</p>
-            <p><strong>Confidence:</strong> {confidence:.2f}</p>
+        <div style="display:flex; justify-content:center; align-items:center; height:80vh;">
+            <div style="width:600px; background-color:{card_color}; 
+                        padding:30px; border-radius:20px; box-shadow:4px 4px 20px rgba(0,0,0,0.3); 
+                        color:white; text-align:center;">
+                <h2 style="margin-top:0;">{emoji} Deteksi File</h2>
+                <p style="font-size:18px;"><strong>Label:</strong> {label.upper()}</p>
+                <p style="font-size:18px;"><strong>Confidence:</strong> {confidence:.2f}%</p>
+                <hr style="border-top:1px solid #ffffff33;">
+                <p style="font-size:16px;"><strong>File Name:</strong> {target}</p>
+                <p style="font-size:16px;"><strong>Uploaded On:</strong> {added_on}</p>
+                <p style="font-size:16px;"><strong>File Type:</strong> {file_type}</p>
+            </div>
         </div>
         """, unsafe_allow_html=True)
 

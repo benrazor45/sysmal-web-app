@@ -6,7 +6,7 @@ from fastapi.responses import JSONResponse
 from fastapi import HTTPException
 
 
-load_dotenv(dotenv_path='C:/Users/USER/sysmal-web-app/.env')
+load_dotenv(dotenv_path='/Users/jezzen145/sysmal-web-app/.env', override=True)
 CAPE_BASE_URL = os.getenv("CAPE_URL")
 VM_NAME = "cape"
 ALLOWED_EXTENSION = "exe"
@@ -101,6 +101,22 @@ def get_file_reports(task_id, token, retry, delay):
             time.sleep(delay)
 
     raise Exception(f"Failed getting report from CAPEv2 after {retry} attempts.")
+
+#Get File View
+def get_file_view(task_id, token, retry, delay):
+    url = f'{CAPE_BASE_URL}/apiv2/tasks/view/{task_id}'
+    headers = {
+        'Authorization' : f'Token {token}'
+    }
+    for attempt in range(retry) :
+        try:
+            response = requests.get(url, headers=headers)
+            response.raise_for_status()
+            return response.json()
+        except requests.exceptions.RequestException as e:
+            print(f"[WARN] Failed getting task view {task_id} (attempt {attempt + 1}/{retry}): {e}")
+            time.sleep(delay)
+
 
 # def analyze_files(file_path, token, max_wait=60):
 
