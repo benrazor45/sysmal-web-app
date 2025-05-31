@@ -34,5 +34,7 @@ def get_top_ngrams(sequence, ngram_range=(2,3), top_n=5):
     X = tfidf.fit_transform([sequence])
     tfidf_scores = zip(tfidf.get_feature_names_out(), X.toarray()[0])
     sorted_scores = sorted(tfidf_scores, key=lambda x: x[1], reverse=True)
-    top_ngrams = [ngram for ngram, score in sorted_scores[:top_n]]
-    return top_ngrams
+    
+    # Kembalikan skor dan n-gram
+    # top_ngrams = [{"ngram": ngram, "score": round(score, 5)} for ngram, score in sorted_scores[:top_n]]
+    return sorted_scores[:top_n]

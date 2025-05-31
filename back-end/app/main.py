@@ -79,10 +79,8 @@ def predict_files(task_id):
         polling_status_task(task_id, token=token_cape, interval=INTERVAL, timeout=TIMEOUT, retry=RETRY_LIMIT)
 
         report = get_file_reports(task_id, token=token_cape, retry=RETRY_LIMIT, delay=DELAY)
-        print(report)
 
         sequence = extract_sequence_from_dict(report)
-        print(sequence)
 
         if not sequence.strip():
             raise HTTPException(status_code=422, detail="Sequence null : File don't have API activities.")

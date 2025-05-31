@@ -7,6 +7,15 @@ import os
 load_dotenv(dotenv_path='/Users/jezzen145/sysmal-web-app/.env', override=True)
 BACKEND_URL = os.getenv("BACKEND_URL")
 
+
+def build_top_ngrams_table(ngrams):
+    table_html = '<table style="margin: 0 auto; border-collapse: collapse;">'
+    table_html += '<tr><th style="border: 1px solid white; padding: 8px;">N-gram</th><th style="border: 1px solid white; padding: 8px;">Score</th></tr>'
+    for ngram, score in ngrams:
+        table_html += f'<tr><td style="border: 1px solid white; padding: 8px;">{ngram}</td><td style="border: 1px solid white; padding: 8px;">{score:.4f}</td></tr>'
+    table_html += '</table>'
+    return table_html
+
 def upload_page():
     st.header("Upload File")
     uploaded_file = st.file_uploader("Please upload an .EXE file.", type=["exe"])
@@ -91,9 +100,14 @@ def upload_page():
         confidence = result["confidence"]
         top_ngrams = result.get("top_ngrams", [])
 
+        top_ngrams_html = build_top_ngrams_table(top_ngrams) if top_ngrams else "<p>No N-grams found</p>"
+    
+        # Display the result in a card-like format
         st.toast("Prediction completed! 🎉", icon="✅")
         card_color = "#FF4B4B" if label == "malware" else "#4CAF50"
         emoji = "🛑" if label == "malware" else "✅"
+
+        st.markdown("<div style='height: 80px;'></div>", unsafe_allow_html=True)
 
         st.markdown(f"""
         <div style="display:flex; justify-content:center; align-items:center; height:80vh;">
@@ -107,6 +121,8 @@ def upload_page():
                 <p style="font-size:16px;"><strong>File Name:</strong> {target}</p>
                 <p style="font-size:16px;"><strong>Uploaded On:</strong> {added_on}</p>
                 <p style="font-size:16px;"><strong>File Type:</strong> {file_type}</p>
+                <p style="font-size:16px;"><strong>Top N-grams:</strong></p>
+                {top_ngrams_html}
             </div>
         </div>
         """, unsafe_allow_html=True)
