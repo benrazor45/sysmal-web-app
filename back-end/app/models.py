@@ -14,6 +14,7 @@ def extract_sequence_from_dict(report_json: dict) -> str:
             for call in process['calls']:
                 api_name = call.get('api')
                 if api_name:
+                    api_name = api_name.replace('_', '')
                     api_calls_with_duplicates.append(api_name)
     
     if not api_calls_with_duplicates:

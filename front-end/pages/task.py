@@ -23,15 +23,15 @@ def task_page():
         return
     
     task_id = response.json().get("id")
-    try :
-        prediction_response = requests.get(f"{BACKEND_URL}/predict/{task_id}")
-        prediction_response.raise_for_status()
-        prediction_data = prediction_response.json()
-    except Exception as e:
-        st.error(f"Failed getting prediction data: {e}")
-        return
+    # try :
+    #     prediction_response = requests.get(f"{BACKEND_URL}/predict/{task_id}")
+    #     prediction_response.raise_for_status()
+    #     prediction_data = prediction_response.json()
+    # except Exception as e:
+    #     st.error(f"Failed getting prediction data: {e}")
+    #     return
     
-    predict = prediction_data.get("label", "")
+    # predict = prediction_data.get("label", "")
     tasks = data.get("tasks", [])
     print(tasks)
     if not tasks:
@@ -44,8 +44,8 @@ def task_page():
             "ID": task["id"],
             "Kategori": task["category"],
             "File": task["target"],
-            "Status": task["status"],
-            "Prediction": predict if task["id"] == task_id else "N/A"
+            "Status": task["status"]
+            # "Prediction": predict if task["id"] == task_id else "N/A"
         }
         for task in tasks
     ]

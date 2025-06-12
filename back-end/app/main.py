@@ -4,7 +4,7 @@ from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 from tensorflow.keras.models import load_model
 import shutil
-from cape_api import submit_file, polling_status_task, get_file_reports, get_task_list, get_file_view
+from cape_api import submit_file, polling_status_task, get_file_reports, get_task_list, get_file_view, get_status_once
 from models import extract_sequence_from_dict, get_top_ngrams
 from utils import save_sequence_to_csv, tokenization, read_sequence_from_csv
 from dotenv import load_dotenv
@@ -28,7 +28,7 @@ TIMEOUT = 600
 INTERVAL = 5
 RETRY_LIMIT = 3
 DELAY = 5
-CSV_PATH = "./seq_csv"
+CSV_PATH = "./seq_new"
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
 @app.post("/file-upload")
@@ -76,6 +76,13 @@ def predict_files(task_id):
     
     try :
 
+        initial_status = get_status_once(task_id, token=token_cape)
+        if initial_status == "failed_analysis":
+            return JSONResponse(
+                status_code=400,
+                content={"error": "x64 files cannot be analyzed by CAPE, please upload a different file."}
+            )
+
         polling_status_task(task_id, token=token_cape, interval=INTERVAL, timeout=TIMEOUT, retry=RETRY_LIMIT)
 
         report = get_file_reports(task_id, token=token_cape, retry=RETRY_LIMIT, delay=DELAY)
@@ -96,7 +103,7 @@ def predict_files(task_id):
         except Exception as e:
             print(f"Error during tokenization: {str(e)}")
 
-        model = load_model('./model/bi_model_batch64_5_05.h5')
+        model = load_model('./model/model-cnn-bi-lstm-fine-tuned-v2.h5')
         prediction = model.predict(padded_sequence)
 
         threshold = 0.5

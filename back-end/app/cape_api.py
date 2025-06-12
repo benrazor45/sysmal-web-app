@@ -62,8 +62,8 @@ def polling_status_task(task_id, token, interval, timeout, retry):
                 print(f"[INFO] Task {task_id} sucessfully processed.")
                 return True
             
-            elif status == "pending":
-                print(f"[INFO] Task {task_id} still pending...")
+            elif status == "running":
+                print(f"[INFO] Task {task_id} still running...")
             
             else:
                 print(f"[INFO] Task {task_id} status: {status}")
@@ -116,6 +116,22 @@ def get_file_view(task_id, token, retry, delay):
         except requests.exceptions.RequestException as e:
             print(f"[WARN] Failed getting task view {task_id} (attempt {attempt + 1}/{retry}): {e}")
             time.sleep(delay)
+
+#Get Status Once to Anticipate Failed Analysis
+def get_status_once(task_id, token):
+    url = f'{CAPE_BASE_URL}/apiv2/tasks/status/{task_id}'
+    headers = {
+        'Authorization' : f'Token {token}'
+    }
+    try:
+        response = requests.get(url, headers=headers)
+        response.raise_for_status()
+        data = response.json()
+        return data.get("data", "")
+    except requests.exceptions.RequestException as e:
+        print(f"[ERROR] Failed getting task status {task_id}: {e}")
+        raise HTTPException(status_code=500, detail=f"Failed getting task status: {e}")
+
 
 
 # def analyze_files(file_path, token, max_wait=60):

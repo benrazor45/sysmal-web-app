@@ -6,3 +6,7 @@ front-end/pages/__pycache__
 check_env.py
 back-end/app/uploads
 back-end/app/__pycache__
+merge_file.py
+seq_new/
+seq_csv_test/
+seq_new_mal/

@@ -7,7 +7,7 @@ from tensorflow.keras.preprocessing.sequence import pad_sequences
 #Cleaning API
 def clean_api(api: str) -> str:
     
-    if '.' in api:
+    if '_' in api:
         return api.split('.')[-1]
     return api
 
@@ -40,10 +40,10 @@ def read_sequence_from_csv(csv_folder, task_id):
 #Tokenization
 def tokenization(task_id, csv_folder):
 
-    with open('./tokenizer/tokenizer.pkl', 'rb') as f:
+    with open('./tokenizer/tokenizer_new.pkl', 'rb') as f:
         tokenizer = pickle.load(f)
 
-    with open('./tokenizer/maxlen_v2.txt', 'r') as f:
+    with open('./tokenizer/maxlen_new.txt', 'r') as f:
         maxlen = int(f.read())
     
     csv_path = os.path.join(csv_folder, f'{task_id}.csv')

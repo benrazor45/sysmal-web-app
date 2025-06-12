@@ -36,29 +36,9 @@ def upload_page():
             st.error(f"Upload failed (Status {response.status_code}): {error_detail}")
             st.code(response.text, language="json")
             return
-
-        # if response.status_code == 200:
-        #     task_id = response.json().get("task_id")
-        #     st.success(f"File dikirim. Task ID: {task_id}")
-        
         
         task_id = response.json().get("task_id")
         st.success(f"File successfully uploaded. Task ID: {task_id}")
-
-
-        # progress_bar = st.progress(0, text="Menunggu CAPEv2 selesai menganalisis...")
-        # progress_val = 0
-    
-        # while progress_val < 70: 
-        #     time.sleep(3)
-        #     progress_val += 10
-        #     progress_bar.progress(progress_val, text=f"Menganalisis file... {progress_val}%")
-        
-        # try:
-        #     prediction_response = requests.get(f"{BACKEND_URL}/predict/{task_id}")
-        # except Exception as e:
-        #     st.error(f"Gagal mendapatkan prediksi: {e}")
-        #     return
 
 
         progress_bar = st.progress(0, text="Waiting CAPEv2 analyze the file...")
@@ -73,9 +53,12 @@ def upload_page():
             return
         
         if prediction_response.status_code != 200:
-            progress_bar.progress(100, text="Analyze complete without prediction result ❗")
+            progress_bar.progress(100, text="Analyze failed ❗")
 
-            if "Sequence null" in prediction_response.text:
+            error_detail = prediction_response.json().get("error", "")
+            if "x64" in error_detail.lower():
+                st.warning("File can't be analyzed (x64 is not supported by CAPEv2 Sandbox)❗")
+            elif "Sequence null" in prediction_response.text:
                 st.warning("File can't be predicted (resolved_apis is null)")
             else:
                 st.error("Prediction failed.")
