@@ -93,20 +93,36 @@ def upload_page():
         st.markdown("<div style='height: 80px;'></div>", unsafe_allow_html=True)
 
         st.markdown(f"""
-        <div style="display:flex; justify-content:center; align-items:center; height:80vh;">
-            <div style="width:600px; background-color:{card_color}; 
-                        padding:30px; border-radius:20px; box-shadow:4px 4px 20px rgba(0,0,0,0.3); 
-                        color:white; text-align:center;">
-                <h2 style="margin-top:0;">{emoji} Deteksi File</h2>
-                <p style="font-size:18px;"><strong>Label:</strong> {label.upper()}</p>
-                <p style="font-size:18px;"><strong>Confidence:</strong> {confidence:.2f}%</p>
-                <hr style="border-top:1px solid #ffffff33;">
-                <p style="font-size:16px;"><strong>File Name:</strong> {target}</p>
-                <p style="font-size:16px;"><strong>Uploaded On:</strong> {added_on}</p>
-                <p style="font-size:16px;"><strong>File Type:</strong> {file_type}</p>
-                <p style="font-size:16px;"><strong>Top N-grams:</strong></p>
-                {top_ngrams_html}
+            <div style="display:flex; justify-content:center; align-items:center; height:80vh;">
+                <div style="width:650px; background-color:{card_color}; 
+                            padding:30px; border-radius:20px; box-shadow:4px 4px 20px rgba(0,0,0,0.3); 
+                            color:white; text-align:center;">
+                    <h2 style="margin-top:0;">{emoji}File Analysis Result</h2>
+                    <p style="font-size:18px;">
+                        <strong>Prediction:</strong> {label.upper()}
+                    </p>
+                    <p style="font-size:18px;">
+                        <strong>
+                            <span title="How confident the system is in this prediction result (the higher, the more certain).">
+                                System Confidence:
+                            </span>
+                        </strong>{confidence:.2f}% sure
+                    </p>
+                    <hr style="border-top:1px solid #ffffff33;">
+                    <p style="font-size:16px;"><strong>File Name:</strong> {target}</p>
+                    <p style="font-size:16px;"><strong>Uploaded On:</strong> {added_on}</p>
+                    <p style="font-size:16px;"><strong>File Type:</strong> {file_type}</p>
+                    <p style="font-size:16px;">
+                        <strong>
+                            <span title="Program behavior patterns based on logged activity, such as file, network, or memory access.">
+                                Common Behavior Patterns:
+                            </span>
+                        </strong>
+                    </p>
+                    {top_ngrams_html}
+                </div>
             </div>
-        </div>
-        """, unsafe_allow_html=True)
+            """, unsafe_allow_html=True)
+
+        
 

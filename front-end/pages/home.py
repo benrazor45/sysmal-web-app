@@ -14,8 +14,11 @@ This project's model repository can be found at https://github.com/benrazor45/sy
 ### 🔧 Key Features:
 - Upload `.exe` files directly via the web interface
 - Analysis process using CAPEv2 framework
-- Prediction using a trained LSTM model
+- Prediction using a trained LSTM models
 - View analysis status and prediction results in real-time
 
 </div>
 """, unsafe_allow_html=True)
+    st.markdown("If you're not sure what ransomware is or how this app works, feel free to check out the Help page below.")
+    if st.button("❓ Help"):
+        st.switch_page("pages/help.py")
