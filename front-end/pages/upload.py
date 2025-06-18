@@ -8,13 +8,13 @@ load_dotenv(dotenv_path='/Users/jezzen145/sysmal-web-app/.env', override=True)
 BACKEND_URL = os.getenv("BACKEND_URL")
 
 
-def build_top_ngrams_table(ngrams):
-    table_html = '<table style="margin: 0 auto; border-collapse: collapse;">'
-    table_html += '<tr><th style="border: 1px solid white; padding: 8px;">N-gram</th><th style="border: 1px solid white; padding: 8px;">Score</th></tr>'
-    for ngram, score in ngrams:
-        table_html += f'<tr><td style="border: 1px solid white; padding: 8px;">{ngram}</td><td style="border: 1px solid white; padding: 8px;">{score:.4f}</td></tr>'
-    table_html += '</table>'
-    return table_html
+# def build_top_ngrams_table(ngrams):
+#     table_html = '<table style="margin: 0 auto; border-collapse: collapse;">'
+#     table_html += '<tr><th style="border: 1px solid white; padding: 8px;">N-gram</th><th style="border: 1px solid white; padding: 8px;">Score</th></tr>'
+#     for ngram, score in ngrams:
+#         table_html += f'<tr><td style="border: 1px solid white; padding: 8px;">{ngram}</td><td style="border: 1px solid white; padding: 8px;">{score:.4f}</td></tr>'
+#     table_html += '</table>'
+#     return table_html
 
 def upload_page():
     st.header("Upload File")
@@ -77,13 +77,13 @@ def upload_page():
         except Exception as e:
             target = added_on = file_type = "N/A"
             st.error(f"Failed to retrieve file view: {e}")
-            return
         
         label = result["label"]
         confidence = result["confidence"]
-        top_ngrams = result.get("top_ngrams", [])
+        # top_ngrams = result.get("top_ngrams", [])
+        explanation = result.get("explanation", "No explanation provided.")
 
-        top_ngrams_html = build_top_ngrams_table(top_ngrams) if top_ngrams else "<p>No N-grams found</p>"
+        # top_ngrams_html = build_top_ngrams_table(top_ngrams) if top_ngrams else "<p>No N-grams found</p>"
     
         # Display the result in a card-like format
         st.toast("Prediction completed! 🎉", icon="✅")
@@ -92,37 +92,57 @@ def upload_page():
 
         st.markdown("<div style='height: 80px;'></div>", unsafe_allow_html=True)
 
+        # st.markdown(f"""
+        #     <div style="display:flex; justify-content:center; align-items:center; height:80vh;">
+        #         <div style="width:650px; background-color:{card_color}; 
+        #                     padding:30px; border-radius:20px; box-shadow:4px 4px 20px rgba(0,0,0,0.3); 
+        #                     color:white; text-align:center;">
+        #             <h2 style="margin-top:0;">{emoji}File Analysis Result</h2>
+        #             <p style="font-size:18px;">
+        #                 <strong>Prediction:</strong> {label.upper()}
+        #             </p>
+        #             <p style="font-size:18px;">
+        #                 <strong>
+        #                     <span title="How confident the system is in this prediction result (the higher, the more certain).">
+        #                         System Confidence:
+        #                     </span>
+        #                 </strong>{confidence:.2f}% sure
+        #             </p>
+        #             <hr style="border-top:1px solid #ffffff33;">
+        #             <p style="font-size:16px;"><strong>File Name:</strong> {target}</p>
+        #             <p style="font-size:16px;"><strong>Uploaded On:</strong> {added_on}</p>
+        #             <p style="font-size:16px;"><strong>File Type:</strong> {file_type}</p>
+        #             <p style="font-size:16px;">
+        #                 <strong>
+        #                     <span title="Program behavior patterns based on logged activity, such as file, network, or memory access.">
+        #                         Common Behavior Patterns:
+        #                     </span>
+        #                 </strong>
+        #             </p>
+        #             {top_ngrams_html}
+        #         </div>
+        #     </div>
+        #     """, unsafe_allow_html=True)
         st.markdown(f"""
-            <div style="display:flex; justify-content:center; align-items:center; height:80vh;">
-                <div style="width:650px; background-color:{card_color}; 
-                            padding:30px; border-radius:20px; box-shadow:4px 4px 20px rgba(0,0,0,0.3); 
-                            color:white; text-align:center;">
-                    <h2 style="margin-top:0;">{emoji}File Analysis Result</h2>
-                    <p style="font-size:18px;">
-                        <strong>Prediction:</strong> {label.upper()}
-                    </p>
-                    <p style="font-size:18px;">
-                        <strong>
-                            <span title="How confident the system is in this prediction result (the higher, the more certain).">
-                                System Confidence:
-                            </span>
-                        </strong>{confidence:.2f}% sure
-                    </p>
-                    <hr style="border-top:1px solid #ffffff33;">
-                    <p style="font-size:16px;"><strong>File Name:</strong> {target}</p>
-                    <p style="font-size:16px;"><strong>Uploaded On:</strong> {added_on}</p>
-                    <p style="font-size:16px;"><strong>File Type:</strong> {file_type}</p>
-                    <p style="font-size:16px;">
-                        <strong>
-                            <span title="Program behavior patterns based on logged activity, such as file, network, or memory access.">
-                                Common Behavior Patterns:
-                            </span>
-                        </strong>
-                    </p>
-                    {top_ngrams_html}
+        <div style="display:flex; justify-content:center; align-items:center;">
+            <div style="width:650px; background-color:{card_color}; 
+                        padding:30px; border-radius:20px; box-shadow:4px 4px 20px rgba(0,0,0,0.3); 
+                        color:white;">
+                
+                <h2 style="text-align:center; margin-top:0;">{emoji} File Analysis Result</h2>
+                <hr style="border-top:1px solid #ffffff33;">
+                
+                <p style="font-size:16px;"><strong>File Name:</strong> {target}</p>
+                <p style="font-size:16px;"><strong>Uploaded On:</strong> {added_on}</p>
+                <p style="font-size:16px;"><strong>File Type:</strong> {file_type}</p>
+                <hr style="border-top:1px solid #ffffff33;">
+                
+                <div style="text-align:left; background-color:rgba(0,0,0,0.15); border-radius:10px; padding:20px; font-family: 'Courier New', Courier, monospace; white-space: pre-wrap;">
+                    {explanation}
                 </div>
             </div>
-            """, unsafe_allow_html=True)
+        </div>
+        """, unsafe_allow_html=True)
 
         
 

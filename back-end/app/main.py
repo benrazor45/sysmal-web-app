@@ -4,8 +4,9 @@ from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 from tensorflow.keras.models import load_model
 import shutil
+import pickle
 from cape_api import submit_file, polling_status_task, get_file_reports, get_task_list, get_file_view, get_status_once
-from models import extract_sequence_from_dict, get_top_ngrams
+from models import extract_sequence_from_dict, generate_explanation
 from utils import save_sequence_to_csv, tokenization, read_sequence_from_csv
 from dotenv import load_dotenv
 
@@ -30,6 +31,28 @@ RETRY_LIMIT = 3
 DELAY = 5
 CSV_PATH = "./seq_new"
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+
+
+print("Memuat model machine learning...")
+try:
+    MODEL = load_model('./model/model-cnn-bi-lstm-fine-tuned-v2.h5')
+    print("Model berhasil dimuat.")
+except Exception as e:
+    print(f"Error saat memuat model: {e}")
+    MODEL = None
+
+print("Memuat pola-pola kunci dari file .pkl...")
+try:
+    with open('./ngrams_vector/top_malware_patterns.pkl', 'rb') as f:
+        TOP_MALWARE_PATTERNS = pickle.load(f)
+    with open('./ngrams_vector/top_benign_patterns.pkl', 'rb') as f:
+        TOP_BENIGN_PATTERNS = pickle.load(f)
+    print("Pola berhasil dimuat.")
+except FileNotFoundError:
+    print("Error: Pastikan 'top_malware_patterns.pkl' dan 'top_benign_patterns.pkl' ada.")
+    TOP_MALWARE_PATTERNS = set()
+    TOP_BENIGN_PATTERNS = set()
+
 
 @app.post("/file-upload")
 async def upload_file(file :UploadFile =File(...)):
@@ -73,6 +96,9 @@ def retrieve_task_list() :
 
 @app.get("/predict/{task_id}")
 def predict_files(task_id):
+
+    if not MODEL:
+        raise HTTPException(status_code=500, detail="Model not loaded")
     
     try :
 
@@ -93,6 +119,7 @@ def predict_files(task_id):
             raise HTTPException(status_code=422, detail="Sequence null : File don't have API activities.")
 
         succes_save_to_csv = save_sequence_to_csv(sequence, output_csv_path=CSV_PATH, task_id=task_id)
+
         if not succes_save_to_csv:
             raise HTTPException(status_code=500, detail="Failed to save sequence to CSV")
 
@@ -103,30 +130,54 @@ def predict_files(task_id):
         except Exception as e:
             print(f"Error during tokenization: {str(e)}")
 
-        model = load_model('./model/model-cnn-bi-lstm-fine-tuned-v2.h5')
-        prediction = model.predict(padded_sequence)
+        
+        prediction_raw = MODEL.predict(padded_sequence)
+        confidence_score = float(prediction_raw[0][0])
+
+        # model = load_model('./model/model-cnn-bi-lstm-fine-tuned-v2.h5')
+        # prediction = model.predict(padded_sequence)
 
         threshold = 0.5
-        if prediction[0][0] > threshold:
+        # if prediction[0][0] > threshold:
+        #     prediction_label = "malware"
+        #     confidence = prediction[0][0] * 100
+        # else:
+        #     prediction_label = "benign"
+        #     confidence = (1 - prediction[0][0]) * 100
+        if confidence_score > threshold:
             prediction_label = "malware"
-            confidence = prediction[0][0] * 100
+            confidence_percent = confidence_score * 100
         else:
             prediction_label = "benign"
-            confidence = (1 - prediction[0][0]) * 100
+            confidence_percent = (1 - confidence_score) * 100
         
-        sequence_text = read_sequence_from_csv(csv_folder=CSV_PATH, task_id=task_id)
-        top_ngrams = get_top_ngrams(sequence_text)
+        explanation_text = generate_explanation(
+            new_sequence=sequence,
+            prediction=prediction_label,
+            confidence_score=confidence_score, 
+            malware_patterns=TOP_MALWARE_PATTERNS,
+            benign_patterns=TOP_BENIGN_PATTERNS
+        )
+        
+        # sequence_text = read_sequence_from_csv(csv_folder=CSV_PATH, task_id=task_id)
+        # top_ngrams = get_top_ngrams(sequence_text)
 
 
 
         # label = "malware" if prediction[0][0] >= 0.5 else "benign"
         # confidence = float(prediction[0][0])
 
+        # return {
+        #     "task_id": task_id,
+        #     "label": prediction_label,
+        #     "confidence": confidence,
+        #     "top_ngrams": top_ngrams
+        # }
         return {
             "task_id": task_id,
             "label": prediction_label,
-            "confidence": confidence,
-            "top_ngrams": top_ngrams
+            "confidence": f"{confidence_percent}%",
+            "top_ngrams": explanation_text
         }
     except Exception as e:
         print(f"Failed Predict Malware")
