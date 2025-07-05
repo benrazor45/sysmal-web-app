@@ -9,6 +9,8 @@ from cape_api import submit_file, polling_status_task, get_file_reports, get_tas
 from models import extract_sequence_from_dict, generate_explanation
 from utils import save_sequence_to_csv, tokenization, read_sequence_from_csv
 from dotenv import load_dotenv
+import time
+from database import setup_database, save_prediction, get_all_predictions
 
 
 app = FastAPI()
@@ -23,7 +25,7 @@ app.add_middleware(
     allow_methods = ["*"],
     allow_headers = ["*"],
 )
-LIMIT_TASK = 5
+LIMIT_TASK = 200
 UPLOAD_FOLDER = "./uploads"
 TIMEOUT = 600
 INTERVAL = 5
@@ -43,9 +45,9 @@ except Exception as e:
 
 print("Memuat pola-pola kunci dari file .pkl...")
 try:
-    with open('./ngrams_vector/top_malware_patterns.pkl', 'rb') as f:
+    with open('./ngrams_vector/top_malware_patterns_20.pkl', 'rb') as f:
         TOP_MALWARE_PATTERNS = pickle.load(f)
-    with open('./ngrams_vector/top_benign_patterns.pkl', 'rb') as f:
+    with open('./ngrams_vector/top_benign_patterns_20.pkl', 'rb') as f:
         TOP_BENIGN_PATTERNS = pickle.load(f)
     print("Pola berhasil dimuat.")
 except FileNotFoundError:
@@ -94,6 +96,33 @@ def retrieve_task_list() :
     except Exception as e :
         raise HTTPException(status_code=500, detail=f"Failed to retrieve tasks: {e}")
 
+@app.get("/task-list-details") 
+def get_task_list_details():
+    try:
+        cape_tasks_result = get_task_list(token=token_cape, limit=LIMIT_TASK)
+        tasks = cape_tasks_result.get("data", [])
+        
+        all_predictions = get_all_predictions()
+
+        combined_tasks = []
+        for task in tasks:
+            task_id = task.get("id")
+            prediction_data = all_predictions.get(task_id, {})
+            
+            combined_tasks.append({
+                "id": task_id,
+                "category": task.get("category"),
+                "target": task.get("target"),
+                "status": task.get("status"),
+                "prediction": prediction_data.get('prediction', 'Analisis...'),
+                "duration": prediction_data.get('duration')
+            })
+            
+        return {"tasks": combined_tasks}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to retrieve tasks: {e}")
+    
+
 @app.get("/predict/{task_id}")
 def predict_files(task_id):
 
@@ -108,6 +137,7 @@ def predict_files(task_id):
                 status_code=400,
                 content={"error": "x64 files cannot be analyzed by CAPE, please upload a different file."}
             )
+        start_time = time.time()
 
         polling_status_task(task_id, token=token_cape, interval=INTERVAL, timeout=TIMEOUT, retry=RETRY_LIMIT)
 
@@ -130,9 +160,14 @@ def predict_files(task_id):
         except Exception as e:
             print(f"Error during tokenization: {str(e)}")
 
-        
         prediction_raw = MODEL.predict(padded_sequence)
+
+        end_time = time.time()
+
+        detection_duration = end_time - start_time 
+
         confidence_score = float(prediction_raw[0][0])
+
 
         # model = load_model('./model/model-cnn-bi-lstm-fine-tuned-v2.h5')
         # prediction = model.predict(padded_sequence)
@@ -145,23 +180,32 @@ def predict_files(task_id):
         #     prediction_label = "benign"
         #     confidence = (1 - prediction[0][0]) * 100
         if confidence_score > threshold:
-            prediction_label = "malware"
+            prediction_label = "Dangerous/Malware"
             confidence_percent = confidence_score * 100
         else:
-            prediction_label = "benign"
+            prediction_label = "Safe/Benign"
             confidence_percent = (1 - confidence_score) * 100
+        
+
+        save_prediction(task_id, prediction_label, detection_duration)
+        
+        confidence_formatted = f"{confidence_percent:.2f}".replace('.', ',') + "%"
+
         
         explanation_text = generate_explanation(
             new_sequence=sequence,
             prediction=prediction_label,
-            confidence_score=confidence_score, 
+            confidence_score=confidence_percent, 
             malware_patterns=TOP_MALWARE_PATTERNS,
             benign_patterns=TOP_BENIGN_PATTERNS
         )
+
+        print(f"[DEBUG] confidence score: {confidence_score}")
+        print(f"[DEBUG] confidence precent: {confidence_percent}")
         
         # sequence_text = read_sequence_from_csv(csv_folder=CSV_PATH, task_id=task_id)
         # top_ngrams = get_top_ngrams(sequence_text)
-
+        print(f"[DEBUG] Task ID : {task_id}, [Explanation: {explanation_text}")
 
 
         # label = "malware" if prediction[0][0] >= 0.5 else "benign"
@@ -176,8 +220,9 @@ def predict_files(task_id):
         return {
             "task_id": task_id,
             "label": prediction_label,
-            "confidence": f"{confidence_percent}%",
-            "top_ngrams": explanation_text
+            "confidence": f"{confidence_formatted}",
+            "explanation": explanation_text,
+            "detection_duration": f"{detection_duration:.4f} seconds"
         }
     except Exception as e:
         print(f"Failed Predict Malware")

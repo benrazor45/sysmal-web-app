@@ -10,3 +10,5 @@ merge_file.py
 seq_new/
 seq_csv_test/
 seq_new_mal/
+data_test/
+ngrams_vector/

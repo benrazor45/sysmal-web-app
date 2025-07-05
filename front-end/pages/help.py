@@ -41,6 +41,61 @@ That’s why detecting ransomware early is so important.
 
 ---
 
+### 📊 What is API calls sequences?
+API call sequences are like a list of actions a program takes while it's running. By analyzing these sequences, we can understand its behavior. This website compares the behavior of an uploaded file against known patterns of malware and safe programs.
+
+Below are the top 20 key patterns frequently found in both malware and benign software that this system uses for detection.
+
+**🔥 Top 20 Malware Key Patterns**
+| No. | API Call Sequence |
+|:---:|---|
+| 1 | `createbindctx cotaskmemalloc` |
+| 2 | `propvarianttostringalloc propvariantclear` |
+| 3 | `coinitializeex systemfunction036` |
+| 4 | `getmartaextensioninterface setsecuritydescriptordacl` |
+| 5 | `cotaskmemalloc cogetapartmenttype coregisterinitializespy` |
+| 6 | `cogetapartmenttype coregisterinitializespy` |
+| 7 | `cotaskmemalloc cogetapartmenttype` |
+| 8 | `initializesecuritydescriptor setentriesinaclw` |
+| 9 | `coregisterinitializespy cotaskmemfree` |
+| 10| `pscreatememorypropertystore propvarianttobuffer` |
+| 11| `sortgethandle sortclosehandle` |
+| 12| `createbindctx cotaskmemalloc cogetapartmenttype` |
+| 13| `cotaskmemfree cogetmalloc` |
+| 14| `cogetapartmenttype coregisterinitializespy cotaskmemfree` |
+| 15| `propvarianttouint64 propvarianttoboolean` |
+| 16| `setentriesinaclw getmartaextensioninterface` |
+| 17| `setentriesinaclw getmartaextensioninterface setsecuritydescriptordacl` |
+| 18| `themeinitapihook isprocessdpiaware` |
+| 19| `coregisterinitializespy cotaskmemfree cogetmalloc` |
+| 20| `initializesecuritydescriptor setentriesinaclw getmartaextensioninterface` |
+
+**✅ Top 20 Benign Key Patterns**
+| No. | API Call Sequence |
+|:---:|---|
+| 1 | `regopenkeyexw regqueryinfokeyw` |
+| 2 | `regclosekey regqueryvalueexw` |
+| 3 | `getlayout gdirealizationinfo` |
+| 4 | `getlayout gdirealizationinfo fontislinked` |
+| 5 | `sortgethandle sortclosehandle` |
+| 6 | `coregisterinitializespy corevokeinitializespy` |
+| 7 | `gettextfacealiasw regenumvaluew` |
+| 8 | `getfontassocstatus regqueryvalueexa` |
+| 9 | `regqueryinfokeyw gettextfacealiasw regenumvaluew` |
+| 10| `regqueryvalueexw getfontassocstatus` |
+| 11| `regqueryinfokeyw gettextfacealiasw` |
+| 12| `getfontassocstatus regqueryvalueexa regenumkeyexw` |
+| 13| `regqueryvalueexa regenumkeyexw` |
+| 14| `fontislinked regopenkeyexw regqueryinfokeyw` |
+| 15| `themeinitapihook isprocessdpiaware` |
+| 16| `fontislinked regopenkeyexw` |
+| 17| `regenumvaluew regclosekey` |
+| 18| `gdirealizationinfo fontislinked` |
+| 19| `gdirealizationinfo fontislinked regopenkeyexw` |
+| 20| `regopenkeyexw regqueryinfokeyw gettextfacealiasw` |
+
+---
+
 ### 🧠 How This Website Detects Ransomware
 
 This website uses **Artificial Intelligence (AI)** to help detect whether a program is dangerous or not.
